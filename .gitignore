@@ -1,0 +1,5 @@
+# Donnees generees par la simulation
+controllers/**/run_log.csv
+results/
+__pycache__/
+*.pyc

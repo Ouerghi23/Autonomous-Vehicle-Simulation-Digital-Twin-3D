@@ -1,0 +1,86 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/Floor.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/road/protos/StraightRoadSegment.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/obstacles/protos/OilBarrel.proto"
+
+WorldInfo {
+  info [
+    "Autonomous Vehicle Simulation - Digital Twin 3D"
+    "Scenario S1 : ligne droite, obstacle statique a 45 m. Essai 4 : diagnostic (LiDAR 720 + centrale inertielle)."
+    "La voiture roule a 30 km/h, ralentit sous 20 m et s'arrete sous 8 m."
+  ]
+  title "AV Digital Twin - S1 Obstacle statique (LiDAR 720 + diagnostic)"
+  ERP 0.6
+  basicTimeStep 10
+  randomSeed 42
+  lineScale 1
+  contactProperties [
+    ContactProperties {
+      coulombFriction [
+        8
+      ]
+      softCFM 1e-05
+      bumpSound ""
+      rollSound ""
+      slideSound ""
+    }
+  ]
+}
+Viewpoint {
+  orientation 0 1 0 0.35
+  position -14 -2 6
+  near 1
+  follow "vehicle"
+  followSmoothness 0.2
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+Floor {
+  translation 50 0 0
+  size 300 100
+}
+StraightRoadSegment {
+  translation -20 0 0.02
+  name "main_road"
+  width 8
+  numberOfLanes 2
+  length 140
+}
+DEF EGO TeslaModel3 {
+  translation 0 -2 0.4
+  rotation 0 0 1 0
+  name "vehicle"
+  controller "av_lidar_stop"
+  sensorsSlotFront [
+    Lidar {
+      translation 0 0 0.1
+      name "lidar"
+      horizontalResolution 720
+      fieldOfView 3.14
+      verticalFieldOfView 0.05
+      numberOfLayers 1
+      minRange 0.5
+      maxRange 40
+    }
+  ]
+  sensorsSlotTop [
+    GPS {
+      name "gps"
+    }
+  ]
+  sensorsSlotCenter [
+    InertialUnit {
+      name "imu"
+    }
+  ]
+}
+DEF OBSTACLE OilBarrel {
+  translation 45 -2 0.44
+  name "obstacle"
+}
