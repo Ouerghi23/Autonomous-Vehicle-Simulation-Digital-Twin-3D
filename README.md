@@ -91,14 +91,6 @@ python tools/analyze_run.py
 
 **Conclusion de l'étude LiDAR.** Une compensation fixe ne suffit pas, car l'assiette du véhicule varie avec l'accélération et le freinage. Une détection robuste demande un LiDAR multi-nappes avec filtrage du sol : c'est l'amélioration retenue pour la suite. Le réglage conservé est 720 rayons (1440 n'apporte rien et coûte plus en calcul).
 
-## Feuille de route
-
-- [x] S1 — Obstacle statique, arrêt d'urgence
-- [ ] Suivi de voie sur route courbe
-- [ ] Scénarios S2 à S5 (obstacle mobile, piéton, intersection, météo)
-- [ ] Dashboard Digital Twin en temps réel (robot window)
-- [ ] Publication sur webots.cloud
-
 ## Limites
 
 La simulation est un environnement de développement et de test. Elle ne garantit pas la sécurité d'un véhicule réel.
