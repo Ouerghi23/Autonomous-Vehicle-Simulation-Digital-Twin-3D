@@ -1,100 +1,103 @@
 # Autonomous Vehicle Simulation — Digital Twin 3D
 
-Simulation 3D d'un véhicule autonome dans **Webots** : la voiture roule, détecte les obstacles avec un **LiDAR**, adapte sa vitesse et s'arrête avant la collision. Chaque essai est enregistré puis analysé avec des métriques reproductibles.
+A 3D simulation of an autonomous vehicle in **Webots**. The car drives, detects obstacles with a **LiDAR**, slows down and stops before a collision. Every run is logged and analyzed with reproducible metrics.
 
-> ▶ **Démo en ligne :** _lien webots.cloud à ajouter_
-> 🎥 **Vidéo :** _lien à ajouter_
+> ▶ **Online demo:** _webots.cloud link coming soon_
+> 🎥 **Video:** _link coming soon_
 
-## Scénario S1 — Obstacle statique
+## Scenario S1 — Static obstacle
 
-| Paramètre | Valeur |
+| Parameter | Value |
 |---|---|
-| Route | Ligne droite, 2 voies, 140 m |
-| Véhicule | Tesla Model 3, voie de droite (y = −2 m) |
-| Obstacle | Baril à 45 m devant |
-| Vitesse de croisière | 30 km/h |
-| Ralentissement | sous 20 m |
-| Arrêt | sous 8 m |
-| Graine aléatoire | 42 |
+| Road | Straight, 2 lanes, 140 m |
+| Vehicle | Tesla Model 3, right lane |
+| Obstacle | Barrel 45 m ahead |
+| Cruise speed | 30 km/h |
+| Slow down | below 20 m |
+| Stop | below 8 m |
+| Random seed | 42 |
 
-## Architecture
+## How it works
 
 ```
-LiDAR (180–1440 rayons)   ──►  Perception : distance minimale dans un cône avant de 30°
-GPS                        ──►  Position (x, y)
-                                      │
-                                      ▼
-                      Décision : CRUISE → SLOW → STOP
-                                      │
-                                      ▼
-              Contrôle : vitesse de croisière + freinage (API Driver)
-                                      │
-                                      ▼
-                     Log CSV  ──►  analyze_run.py  ──►  Métriques
+LiDAR  ──►  Perception: closest obstacle in a 30° cone ahead
+GPS    ──►  Position (x, y)
+                     │
+                     ▼
+         Decision: CRUISE → SLOW → STOP
+                     │
+                     ▼
+         Control: speed + braking (Driver API)
+                     │
+                     ▼
+         CSV log ──► analyze_run.py ──► metrics
 ```
 
-## Structure du dépôt
+## Project structure
 
 ```
 av-digital-twin/
-├── Dockerfile                 # version de Webots utilisée sur webots.cloud
-├── webots.yaml                # publication sur webots.cloud
+├── Dockerfile                 # Webots version used on webots.cloud
+├── webots.yaml                # webots.cloud publishing settings
 ├── worlds/
-│   ├── av_lidar_stop.wbt      # scène S1, LiDAR 180 rayons (essai 1)
-│   ├── av_lidar_stop_720.wbt  # scène S1, LiDAR 720 rayons (essai 2)
-│   ├── av_lidar_stop_1440.wbt # scène S1, LiDAR 1440 rayons (essai 3)
-│   ├── av_lidar_stop_diag.wbt # scène S1, LiDAR 720 + centrale inertielle (essai 4)
-│   └── av_lidar_stop_tilt.wbt # scène S1, LiDAR incliné pour compenser le tangage (essai 5)
+│   ├── av_lidar_stop.wbt      # test 1: LiDAR with 180 rays
+│   ├── av_lidar_stop_720.wbt  # test 2: 720 rays
+│   ├── av_lidar_stop_1440.wbt # test 3: 1440 rays
+│   ├── av_lidar_stop_diag.wbt # test 4: 720 rays + inertial unit
+│   └── av_lidar_stop_tilt.wbt # test 5: LiDAR tilted to offset the car's pitch
 ├── controllers/
 │   └── av_lidar_stop/
-│       └── av_lidar_stop.py   # perception, décision, contrôle, log
+│       └── av_lidar_stop.py   # perception, decision, control, logging
 └── tools/
-    └── analyze_run.py         # calcul des métriques
+    └── analyze_run.py         # computes the metrics
 ```
 
-## Lancer en local
+## Run it
 
-1. Installer **Webots R2025a** et **Python 3.11+**.
-2. Ouvrir `worlds/av_lidar_stop.wbt` dans Webots.
-3. Lancer la simulation (▶). Le log est écrit dans `controllers/av_lidar_stop/run_log_<N>rays.csv` (un fichier par résolution du LiDAR).
-4. Calculer les métriques :
+1. Install **Webots R2025a** and **Python 3.11+**.
+2. Open `worlds/av_lidar_stop.wbt` in Webots.
+3. Press ▶. The log is saved in `controllers/av_lidar_stop/`, one file per test.
+4. Compare all recorded runs:
 
 ```bash
-# compare automatiquement tous les essais enregistres
 python tools/analyze_run.py
 ```
 
-## Métriques
+## Metrics
 
-| Métrique | Description |
+| Metric | Meaning |
 |---|---|
-| `success` | Arrêt complet sans contact avec l'obstacle |
-| `first_detect_m` | Distance de la première détection de l'obstacle |
-| `stop_time_s` | Temps avant l'arrêt complet |
-| `stop_distance_m` | Distance restante à l'obstacle à l'arrêt |
-| `min_distance_m` | Distance minimale mesurée |
-| `max_speed_kmh` | Vitesse maximale atteinte |
-| `distance_driven_m` | Distance parcourue |
-| `lateral_dev_max_m` | Écart latéral maximal par rapport au centre de la voie |
+| `success` | Full stop without touching the obstacle |
+| `first_detect_m` | Distance at which the obstacle is first detected |
+| `stop_time_s` | Time until the car is fully stopped |
+| `stop_distance_m` | Distance left to the obstacle when stopped |
+| `min_distance_m` | Smallest distance measured |
+| `max_speed_kmh` | Top speed |
+| `distance_driven_m` | Distance driven |
+| `lateral_dev_max_m` | Largest deviation from the lane center |
 
-## Résultats
+## Results: LiDAR study
 
-| Essai | LiDAR | Première détection | Distance d'arrêt | Réussite |
+| Test | LiDAR setup | First detection | Stopping distance | Success |
 |---|---|---|---|---|
-| 1 | 180 rayons | 17,3 m | 7,86 m | ✅ |
-| 2 | 720 rayons | 33,5 m | 7,86 m | ✅ |
-| 3 | 1440 rayons | identique à l'essai 2 | 7,9 m | ✅ |
-| 4 | 720 rayons + diagnostic | 33,5 m (tangage −0,56°) | 7,9 m | ✅ |
-| 5 | 720 rayons, LiDAR incliné −0,56° | 36,8 m (tangage −1,04° en accélération) | 7,9 m | ✅ |
+| 1 | 180 rays | 17.3 m | 7.86 m | ✅ |
+| 2 | 720 rays | 33.5 m | 7.86 m | ✅ |
+| 3 | 1440 rays | same as test 2 | 7.9 m | ✅ |
+| 4 | 720 rays + inertial unit | 33.5 m (pitch −0.56°) | 7.9 m | ✅ |
+| 5 | 720 rays, LiDAR tilted −0.56° | 36.8 m (pitch −1.04° while accelerating) | 7.86 m | ✅ |
 
-**Conclusion intermédiaire.** Passer de 180 à 720 rayons double la distance de détection (17,3 → 33,5 m). Passer à 1440 rayons ne change plus rien : au-delà de 720 rayons, la résolution horizontale n'est plus le facteur limitant. L'essai 4 mesure un tangage de −0,56° (avant relevé) : le faisceau monte de 0,33 m sur 33,5 m et passe au-dessus du baril (haut à 0,90 m), ce qui correspond à un LiDAR à ≈ 0,57 m du sol, cohérent avec la géométrie du véhicule. L'essai 5 compense cette inclinaison : la détection passe à 36,8 m, mais elle a lieu pendant l'accélération, où la voiture se cabre davantage (−1,04°). Le faisceau remonte alors de ≈ 0,5° et passe de nouveau au-dessus du baril.
+**What the tests show**
 
-**Conclusion de l'étude LiDAR.** Une compensation fixe ne suffit pas, car l'assiette du véhicule varie avec l'accélération et le freinage. Une détection robuste demande un LiDAR multi-nappes avec filtrage du sol : c'est l'amélioration retenue pour la suite. Le réglage conservé est 720 rayons (1440 n'apporte rien et coûte plus en calcul).
+- **Resolution.** Going from 180 to 720 rays doubles the detection range (17.3 → 33.5 m). Going to 1440 rays changes nothing: above 720 rays, resolution is no longer the limit.
+- **Pitch.** The car's nose rises slightly while driving (−0.56°). Over 33.5 m, the beam climbs 0.33 m and passes over the barrel, which is 0.90 m tall.
+- **Compensation.** Tilting the LiDAR down raises detection to 36.8 m. But the car tilts more while accelerating (−1.04°), so the beam passes over the barrel again.
 
-## Limites
+**Conclusion.** A fixed correction is not enough, because the car's pitch changes when it accelerates and brakes. Reliable detection needs a multi-layer LiDAR that filters out the ground. The chosen setting is 720 rays: 1440 adds nothing and costs more computing time.
 
-La simulation est un environnement de développement et de test. Elle ne garantit pas la sécurité d'un véhicule réel.
+## Limitations
 
-## Auteure
+This simulation is a development and testing environment. It does not guarantee the safety of a real vehicle.
+
+## Author
 
 Chaima Ouerghi
